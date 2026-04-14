@@ -1,23 +1,26 @@
-import { auth } from "@/auth";
+import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-export default auth((req) => {
-  const isLoggedIn = !!req.auth;
-  const isAdmin = (req.auth?.user as any)?.role === "admin";
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Protect /admin routes — must be logged in as admin
   if (pathname.startsWith("/admin")) {
-    if (!isLoggedIn) {
+    const token = await getToken({
+      req,
+      secret: process.env.AUTH_SECRET,
+    });
+
+    if (!token) {
       return NextResponse.redirect(new URL("/login", req.url));
     }
-    if (!isAdmin) {
+    if (token.role !== "admin") {
       return NextResponse.redirect(new URL("/", req.url));
     }
   }
 
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: ["/admin/:path*"],
