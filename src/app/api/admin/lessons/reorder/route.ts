@@ -15,6 +15,9 @@ export async function PATCH(req: NextRequest) {
   if (!Array.isArray(orderedIds) || orderedIds.length === 0) {
     return NextResponse.json({ error: 'orderedIds must be a non-empty array' }, { status: 400 });
   }
+  if (orderedIds.length > 500) {
+    return NextResponse.json({ error: 'Too many IDs (max 500)' }, { status: 400 });
+  }
   // Update sort_order sequentially to avoid race conditions
   for (let idx = 0; idx < orderedIds.length; idx++) {
     await pool.query('UPDATE lessons SET sort_order = ? WHERE id = ?', [idx + 1, orderedIds[idx]]);

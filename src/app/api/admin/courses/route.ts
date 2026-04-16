@@ -19,7 +19,16 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!isAdmin(session)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-  const { title, slug, description, category, level, price, prerequisite_id, sort_order, is_published } = await req.json();
+  let body: Record<string, any>;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+  }
+  if (!body.title || !body.slug) {
+    return NextResponse.json({ error: 'title and slug are required' }, { status: 400 });
+  }
+  const { title, slug, description, category, level, price, prerequisite_id, sort_order, is_published } = body;
   const [result] = await pool.query<ResultSetHeader>(
     'INSERT INTO courses (title, slug, description, category, level, price, prerequisite_id, sort_order, is_published) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
     [title, slug, description ?? null, category ?? 'healthcare', level ?? 'beginner', price ?? 0, prerequisite_id ?? null, sort_order ?? 0, is_published ? 1 : 0]

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import pool from '@/lib/db';
-import { RowDataPacket } from 'mysql2/promise';
+import { RowDataPacket, ResultSetHeader } from 'mysql2/promise';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,11 +24,17 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const session = await auth();
   if (!isAdmin(session)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   const { id } = await params;
-  const body = await req.json();
-  await pool.query(
+  let body: Record<string, any>;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+  }
+  const [result] = await pool.query<ResultSetHeader>(
     'UPDATE courses SET title=?, description=?, category=?, level=?, price=?, prerequisite_id=?, sort_order=?, is_published=?, thumbnail=? WHERE id=?',
     [body.title, body.description ?? null, body.category, body.level, body.price, body.prerequisite_id ?? null, body.sort_order, body.is_published ? 1 : 0, body.thumbnail ?? null, id]
   );
+  if (result.affectedRows === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   return NextResponse.json({ ok: true });
 }
 
