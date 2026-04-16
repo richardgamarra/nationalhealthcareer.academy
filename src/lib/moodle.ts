@@ -1,4 +1,5 @@
-import mysql from 'mysql2/promise';
+import 'server-only';
+import mysql, { RowDataPacket } from 'mysql2/promise';
 
 // Separate pool pointing at the Moodle DB on the same server
 const moodlePool = mysql.createPool({
@@ -6,6 +7,7 @@ const moodlePool = mysql.createPool({
   user:     process.env.MOODLE_DB_USER     || '',
   password: process.env.MOODLE_DB_PASSWORD || '',
   database: process.env.MOODLE_DB_NAME     || '',
+  charset:  'utf8mb4',
   waitForConnections: true,
   connectionLimit: 5,
 });
@@ -14,14 +16,6 @@ export interface MoodleCourse {
   id: number;
   shortname: string;
   fullname: string;
-  summary: string;
-}
-
-export interface MoodleSection {
-  id: number;
-  course: number;
-  section: number;
-  name: string;
   summary: string;
 }
 
@@ -39,22 +33,22 @@ export interface MoodleQuestion {
   id: number;
   quizId: number;
   questionText: string;
-  qtype: 'multichoice' | 'truefalse' | 'shortanswer';
+  qtype: 'multichoice' | 'truefalse' | 'shortanswer' | string;
   answers: { text: string; fraction: number }[];
 }
 
 /** Fetch all non-site courses from Moodle */
 export async function scanMoodleCourses(): Promise<MoodleCourse[]> {
-  const [rows] = await moodlePool.query<any[]>(
+  const [rows] = await moodlePool.query<RowDataPacket[]>(
     "SELECT id, shortname, fullname, summary FROM mdl_course WHERE id > 1 ORDER BY sortorder"
   );
-  return rows;
+  return rows as unknown as MoodleCourse[];
 }
 
 /** Fetch all sections + page/quiz modules for a given Moodle course ID */
 export async function scanMoodleLessons(courseId: number): Promise<MoodleLesson[]> {
   // Get pages
-  const [pageRows] = await moodlePool.query<any[]>(`
+  const [pageRows] = await moodlePool.query<RowDataPacket[]>(`
     SELECT
       p.id, cm.course, cs.section, cs.name AS sectionName, p.name, p.content, 'page' AS modType
     FROM mdl_page p
@@ -65,7 +59,7 @@ export async function scanMoodleLessons(courseId: number): Promise<MoodleLesson[
   `, [courseId]);
 
   // Get quizzes
-  const [quizRows] = await moodlePool.query<any[]>(`
+  const [quizRows] = await moodlePool.query<RowDataPacket[]>(`
     SELECT
       q.id, cm.course, cs.section, cs.name AS sectionName, q.name, '' AS content, 'quiz' AS modType
     FROM mdl_quiz q
@@ -75,12 +69,12 @@ export async function scanMoodleLessons(courseId: number): Promise<MoodleLesson[
     ORDER BY cs.section, cm.id
   `, [courseId]);
 
-  return [...pageRows, ...quizRows] as MoodleLesson[];
+  return [...pageRows, ...quizRows] as unknown as MoodleLesson[];
 }
 
 /** Fetch quiz questions for a given Moodle quiz ID */
 export async function scanMoodleQuestions(quizId: number): Promise<MoodleQuestion[]> {
-  const [rows] = await moodlePool.query<any[]>(`
+  const [rows] = await moodlePool.query<RowDataPacket[]>(`
     SELECT
       q.id, qs.quizid AS quizId, q.questiontext AS questionText, q.qtype,
       qa.answer AS answerText, qa.fraction
@@ -88,6 +82,7 @@ export async function scanMoodleQuestions(quizId: number): Promise<MoodleQuestio
     JOIN mdl_question q ON q.id = qs.questionid
     JOIN mdl_question_answers qa ON qa.question = q.id
     WHERE qs.quizid = ?
+      AND q.qtype IN ('multichoice', 'truefalse', 'shortanswer')
     ORDER BY qs.slot, qa.id
   `, [quizId]);
 
@@ -105,7 +100,7 @@ export async function scanMoodleQuestions(quizId: number): Promise<MoodleQuestio
     }
     questionMap.get(row.id)!.answers.push({ text: row.answerText, fraction: row.fraction });
   }
-  return Array.from(questionMap.values());
+  return Array.from(questionMap.values()) as MoodleQuestion[];
 }
 
 export default moodlePool;
