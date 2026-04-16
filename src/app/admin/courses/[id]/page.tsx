@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import type { Course, Lesson, QuizQuestion } from '@/types';
 import LessonTree from '@/components/admin/LessonTree';
 import LessonEditor from '@/components/admin/LessonEditor';
@@ -8,30 +9,48 @@ import LessonEditor from '@/components/admin/LessonEditor';
 export default function CourseEditorPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [course, setCourse] = useState<Course | null>(null);
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
   const [activeQuestions, setActiveQuestions] = useState<QuizQuestion[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   const loadCourse = useCallback(async () => {
     try {
       const res = await fetch(`/api/admin/courses/${id}`);
+      if (!res.ok) throw new Error(`Failed to load course (${res.status})`);
       const data = await res.json();
       setCourse(data.course);
       setLessons(data.lessons ?? []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load course');
     } finally {
       setLoading(false);
     }
   }, [id]);
 
-  useEffect(() => { loadCourse(); }, [loadCourse]);
+  useEffect(() => {
+    if (status === 'loading') return;
+    if (!session || (session.user as any)?.role !== 'admin') {
+      router.push('/login');
+      return;
+    }
+    loadCourse();
+  }, [session, status, loadCourse, router]);
 
   async function selectLesson(lesson: Lesson) {
-    const res = await fetch(`/api/admin/lessons/${lesson.id}`);
-    const data = await res.json();
-    setActiveLesson(data.lesson);
-    setActiveQuestions(data.questions ?? []);
+    try {
+      const res = await fetch(`/api/admin/lessons/${lesson.id}`);
+      if (!res.ok) throw new Error(`Failed to load lesson (${res.status})`);
+      const data = await res.json();
+      setActiveLesson(data.lesson);
+      setActiveQuestions(data.questions ?? []);
+    } catch (err) {
+      console.error('selectLesson error:', err);
+      alert(err instanceof Error ? err.message : 'Failed to load lesson');
+    }
   }
 
   async function handleAddSection() {
@@ -42,7 +61,12 @@ export default function CourseEditorPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ course_id: Number(id), section_title: title, title: 'New Lesson', type: 'text', sort_order: lessons.length + 1 }),
     });
-    if (res.ok) loadCourse();
+    if (res.ok) {
+      loadCourse();
+    } else {
+      console.error('handleAddSection failed:', res.status);
+      alert('Failed to add section — please try again');
+    }
   }
 
   async function handleAddLesson(sectionTitle: string | null) {
@@ -53,18 +77,37 @@ export default function CourseEditorPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ course_id: Number(id), section_title: sectionTitle, title, type: 'text', sort_order: lessons.length + 1 }),
     });
-    if (res.ok) loadCourse();
+    if (res.ok) {
+      loadCourse();
+    } else {
+      console.error('handleAddLesson failed:', res.status);
+      alert('Failed to add lesson — please try again');
+    }
   }
 
   async function handleReorder(orderedIds: number[]) {
-    await fetch('/api/admin/lessons/reorder', {
+    const res = await fetch('/api/admin/lessons/reorder', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ orderedIds }),
     });
+    if (!res.ok) {
+      console.error('handleReorder failed:', res.status);
+    }
   }
 
-  if (loading) return <div className="flex items-center justify-center min-h-[60vh] text-gray-400">Loading…</div>;
+  if (status === 'loading' || loading) return <div className="flex items-center justify-center min-h-[60vh] text-gray-400">Loading…</div>;
+
+  if (error) return (
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 text-sm max-w-md text-center">
+        <p className="font-medium mb-2">Error loading course</p>
+        <p>{error}</p>
+        <button type="button" onClick={() => { setError(''); setLoading(true); loadCourse(); }}
+          className="mt-3 text-red-600 underline text-xs">Try again</button>
+      </div>
+    </div>
+  );
 
   return (
     <div className="flex flex-col h-screen">
