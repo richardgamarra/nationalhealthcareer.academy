@@ -66,3 +66,32 @@ CREATE TABLE live_classes (
   instructor      VARCHAR(255) DEFAULT 'Instructor',
   created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+-- ─── Migration v2 — 2026-04-14 ───────────────────────────────────────────────
+
+ALTER TABLE courses
+  ADD COLUMN IF NOT EXISTS price           DECIMAL(10,2)  NOT NULL DEFAULT 0.00,
+  ADD COLUMN IF NOT EXISTS prerequisite_id INT            NULL,
+  ADD COLUMN IF NOT EXISTS sort_order      INT            NOT NULL DEFAULT 0;
+
+ALTER TABLE lessons
+  ADD COLUMN IF NOT EXISTS type      ENUM('text','document','presentation','quiz') NOT NULL DEFAULT 'text',
+  ADD COLUMN IF NOT EXISTS file_path VARCHAR(500) NULL;
+
+ALTER TABLE students
+  ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE;
+
+ALTER TABLE enrollments
+  ADD COLUMN IF NOT EXISTS granted_by_admin BOOLEAN NOT NULL DEFAULT FALSE;
+
+CREATE TABLE IF NOT EXISTS quiz_questions (
+  id             INT AUTO_INCREMENT PRIMARY KEY,
+  lesson_id      INT NOT NULL,
+  type           ENUM('multiple_choice','true_false','short_answer') NOT NULL,
+  question       TEXT NOT NULL,
+  options        JSON NULL,
+  correct_answer VARCHAR(500) NULL,
+  sort_order     INT NOT NULL DEFAULT 0,
+  created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (lesson_id) REFERENCES lessons(id) ON DELETE CASCADE
+);
