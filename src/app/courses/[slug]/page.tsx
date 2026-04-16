@@ -55,7 +55,7 @@ export default async function CourseDetailPage({ params, searchParams }: { param
     activeLesson = requestedLesson;
   } else {
     // Fall back to first accessible lesson
-    activeLesson = lessons.find((l) => freeIds.has(l.id) || enrolled) ?? lessons[0] ?? null;
+    activeLesson = lessons.find((l) => canAccessLesson(l, allCourses, lessons, enrollments, role)) ?? null;
   }
 
   // 3. ONLY THEN fetch quiz questions for the validated lesson
