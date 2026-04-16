@@ -17,24 +17,35 @@ export default function ImportPage() {
 
   async function handleScan() {
     setStep('scanning'); setError('');
-    const res = await fetch('/api/admin/import/scan');
-    const data = await res.json();
-    if (!res.ok) { setError(data.error); setStep('idle'); return; }
-    setCourses(data.courses);
-    setSelected(new Set(data.courses.filter((c: CoursePreview) => !c.alreadyImported).map((c: CoursePreview) => c.moodleId)));
-    setStep('preview');
+    try {
+      const res = await fetch('/api/admin/import/scan');
+      const data = await res.json();
+      if (!res.ok) { setError(data.error ?? 'Scan failed'); setStep('idle'); return; }
+      setCourses(data.courses);
+      setSelected(new Set(data.courses.filter((c: CoursePreview) => !c.alreadyImported).map((c: CoursePreview) => c.moodleId)));
+      setStep('preview');
+    } catch {
+      setError('Network error — could not reach the server.');
+      setStep('idle');
+    }
   }
 
   async function handleImport() {
-    setStep('importing');
-    const res = await fetch('/api/admin/import/run', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ selectedMoodleIds: Array.from(selected) }),
-    });
-    const data = await res.json();
-    setResults(data.results);
-    setStep('done');
+    setStep('importing'); setError('');
+    try {
+      const res = await fetch('/api/admin/import/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ selectedMoodleIds: Array.from(selected) }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error ?? 'Import failed'); setStep('preview'); return; }
+      setResults(data.results);
+      setStep('done');
+    } catch {
+      setError('Network error — import could not be completed.');
+      setStep('preview');
+    }
   }
 
   function toggleCourse(id: number) {
@@ -75,15 +86,24 @@ export default function ImportPage() {
             </button>
           </div>
           {courses.map((c) => (
-            <div key={c.moodleId} className="flex items-center gap-4 px-4 py-3 border-b border-gray-50 last:border-0">
-              <input type="checkbox" checked={selected.has(c.moodleId)} onChange={() => toggleCourse(c.moodleId)}
-                disabled={c.alreadyImported} className="w-4 h-4" />
+            <label
+              key={c.moodleId}
+              className={`flex items-center gap-4 px-4 py-3 border-b border-gray-50 last:border-0 ${c.alreadyImported ? 'opacity-60' : 'cursor-pointer hover:bg-gray-50'}`}
+            >
+              <input
+                type="checkbox"
+                checked={selected.has(c.moodleId)}
+                onChange={() => toggleCourse(c.moodleId)}
+                disabled={c.alreadyImported}
+                aria-label={c.alreadyImported ? `${c.title} (already imported)` : c.title}
+                className="w-4 h-4"
+              />
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-900">{c.title}</p>
                 <p className="text-xs text-gray-400">{c.lessonCount} lessons · {c.questionCount} quiz questions</p>
               </div>
               {c.alreadyImported && <span className="text-xs bg-gray-100 text-gray-500 rounded px-2 py-0.5">Already imported</span>}
-            </div>
+            </label>
           ))}
         </div>
       )}
@@ -99,8 +119,8 @@ export default function ImportPage() {
           <div className="p-4 border-b border-gray-100">
             <p className="text-sm font-semibold text-gray-700">Import complete</p>
           </div>
-          {results.map((r, i) => (
-            <div key={i} className="flex items-center justify-between px-4 py-3 border-b border-gray-50 last:border-0">
+          {results.map((r) => (
+            <div key={r.title} className="flex items-center justify-between px-4 py-3 border-b border-gray-50 last:border-0">
               <span className="text-sm text-gray-800">{r.title}</span>
               <span className={`text-xs px-2 py-0.5 rounded font-medium ${
                 r.status === 'imported' ? 'bg-green-100 text-green-700' :
