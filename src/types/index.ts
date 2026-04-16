@@ -2,11 +2,14 @@ export interface Course {
   id: number;
   title: string;
   slug: string;
-  description: string;
+  description: string | null;
   thumbnail: string | null;
   category: string;
   level: 'beginner' | 'intermediate' | 'advanced';
   is_published: boolean;
+  price: number;
+  prerequisite_id: number | null;
+  sort_order: number;
   created_at: string;
 }
 
@@ -15,25 +18,38 @@ export interface Lesson {
   course_id: number;
   title: string;
   slug: string;
-  content: string;
+  content: string | null;
+  type: 'text' | 'document' | 'presentation' | 'quiz';
+  file_path: string | null;
   video_url: string | null;
   sort_order: number;
   section_title: string | null;
+}
+
+export interface QuizQuestion {
+  id: number;
+  lesson_id: number;
+  type: 'multiple_choice' | 'true_false' | 'short_answer';
+  question: string;
+  options: string[] | null;
+  correct_answer: string | null;
+  sort_order: number;
 }
 
 export interface Student {
   id: number;
   name: string;
   email: string;
-  avatar: string | null;
-  enrolled_at: string;
+  is_active: boolean;
+  role: 'student' | 'instructor' | 'admin';
+  created_at: string;
 }
 
 export interface Enrollment {
   student_id: number;
   course_id: number;
   progress_pct: number;
-  last_lesson_id: number | null;
+  granted_by_admin: boolean;
   enrolled_at: string;
 }
 
