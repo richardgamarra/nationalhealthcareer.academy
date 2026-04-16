@@ -1,12 +1,21 @@
+import sanitizeHtml from 'sanitize-html';
 import type { Lesson, QuizQuestion } from '@/types';
 
 interface Props { lesson: Lesson; questions: QuizQuestion[]; }
 
 export default function LessonViewer({ lesson, questions }: Props) {
   if (lesson.type === 'text') {
+    const safe = sanitizeHtml(lesson.content || '', {
+      allowedTags: sanitizeHtml.defaults.allowedTags.concat(['h1', 'h2', 'h3', 'u', 'del', 'img']),
+      allowedAttributes: {
+        ...sanitizeHtml.defaults.allowedAttributes,
+        'a': ['href', 'name', 'target', 'rel'],
+        'img': ['src', 'alt', 'width', 'height'],
+      },
+    });
     return (
       <div className="prose prose-sm max-w-none p-6"
-        dangerouslySetInnerHTML={{ __html: lesson.content || '<p class="text-gray-400">No content yet.</p>' }} />
+        dangerouslySetInnerHTML={{ __html: safe || '<p class="text-gray-400">No content yet.</p>' }} />
     );
   }
 
@@ -58,7 +67,7 @@ export default function LessonViewer({ lesson, questions }: Props) {
           </div>
         ))}
         {questions.length > 0 && (
-          <button type="button" className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold text-sm hover:bg-blue-700">Submit Quiz</button>
+          <p className="text-sm text-gray-400 text-center italic mt-4">Quiz submission coming in a future update.</p>
         )}
       </div>
     );

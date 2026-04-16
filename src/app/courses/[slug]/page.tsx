@@ -45,17 +45,20 @@ export default async function CourseDetailPage({ params, searchParams }: { param
     lessons.filter((l) => isFreeLesson(l, allCourses, lessons)).map((l) => l.id)
   );
 
-  // Active lesson: from query param or first accessible
+  // 1. Find requested lesson
   const requestedId = lessonParam ? parseInt(lessonParam) : null;
-  let activeLesson = requestedId ? lessons.find((l) => l.id === requestedId) ?? null : null;
-  if (!activeLesson) activeLesson = lessons.find((l) => freeIds.has(l.id) || enrolled) ?? lessons[0] ?? null;
+  const requestedLesson = requestedId ? lessons.find((l) => l.id === requestedId) ?? null : null;
 
-  // Check access — fall back to free lesson if requested lesson is locked
-  if (activeLesson && !canAccessLesson(activeLesson, allCourses, lessons, enrollments, role)) {
-    activeLesson = lessons.find((l) => freeIds.has(l.id)) ?? lessons[0] ?? null;
+  // 2. Check access to requested lesson; fall back if locked
+  let activeLesson: Lesson | null = null;
+  if (requestedLesson && canAccessLesson(requestedLesson, allCourses, lessons, enrollments, role)) {
+    activeLesson = requestedLesson;
+  } else {
+    // Fall back to first accessible lesson
+    activeLesson = lessons.find((l) => freeIds.has(l.id) || enrolled) ?? lessons[0] ?? null;
   }
 
-  // Fetch quiz questions for active lesson
+  // 3. ONLY THEN fetch quiz questions for the validated lesson
   let questions: QuizQuestion[] = [];
   if (activeLesson?.type === 'quiz') {
     const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM quiz_questions WHERE lesson_id = ? ORDER BY sort_order', [activeLesson.id]);
