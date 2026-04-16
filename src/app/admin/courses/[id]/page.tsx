@@ -93,6 +93,7 @@ export default function CourseEditorPage() {
     });
     if (!res.ok) {
       console.error('handleReorder failed:', res.status);
+      alert('Failed to reorder lessons. Please try again.');
     }
   }
 

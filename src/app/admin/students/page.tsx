@@ -18,9 +18,13 @@ export default function StudentsPage() {
   const [msg, setMsg] = useState('');
 
   async function load() {
-    const [sr, cr] = await Promise.all([fetch('/api/admin/students'), fetch('/api/admin/courses')]);
-    setStudents(await sr.json());
-    setCourses(await cr.json());
+    try {
+      const [sr, cr] = await Promise.all([fetch('/api/admin/students'), fetch('/api/admin/courses')]);
+      if (sr.ok) setStudents(await sr.json());
+      if (cr.ok) setCourses(await cr.json());
+    } catch {
+      setMsg('Failed to load data. Please refresh.');
+    }
   }
 
   useEffect(() => {
@@ -34,19 +38,23 @@ export default function StudentsPage() {
 
   async function createStudent(e: React.FormEvent) {
     e.preventDefault();
-    const res = await fetch('/api/admin/students', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newForm),
-    });
-    if (res.ok) {
-      setShowCreate(false);
-      setNewForm({ name: '', email: '', password: '' });
-      load();
-      setMsg('Student created');
-    } else {
-      const d = await res.json();
-      setMsg(d.error || 'Error creating student');
+    try {
+      const res = await fetch('/api/admin/students', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newForm),
+      });
+      if (res.ok) {
+        setShowCreate(false);
+        setNewForm({ name: '', email: '', password: '' });
+        load();
+        setMsg('Student created');
+      } else {
+        const d = await res.json();
+        setMsg(d.error || 'Error creating student');
+      }
+    } catch {
+      setMsg('Failed to create student. Please try again.');
     }
   }
 
@@ -101,6 +109,7 @@ export default function StudentsPage() {
     setNewPw('');
     if (res.ok) {
       setMsg('Password updated');
+      load();
     } else {
       setMsg('Error resetting password — please try again');
     }
@@ -173,7 +182,7 @@ export default function StudentsPage() {
           <div className="bg-white rounded-xl p-6 shadow-xl w-full max-w-sm space-y-4">
             <h2 className="font-bold text-lg">Reset Password</h2>
             <p className="text-sm text-gray-500">Student: <strong>{pwModal.name}</strong></p>
-            <input type="password" placeholder="New password" className={inputCls} value={newPw}
+            <input required type="password" placeholder="New password" className={inputCls} value={newPw}
               onChange={(e) => setNewPw(e.target.value)} />
             <div className="flex gap-3">
               <button type="button" onClick={resetPassword} disabled={!newPw}
