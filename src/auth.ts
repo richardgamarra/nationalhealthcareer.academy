@@ -15,7 +15,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!credentials?.email || !credentials?.password) return null;
 
         const [rows] = await pool.query(
-          "SELECT id, name, email, password_hash, role FROM students WHERE email = ? LIMIT 1",
+          "SELECT id, name, email, password_hash, role, is_active FROM students WHERE email = ? LIMIT 1",
           [credentials.email]
         );
         const user = (rows as any[])[0];
@@ -26,6 +26,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           user.password_hash
         );
         if (!valid) return null;
+
+        if (!user.is_active) return null;
 
         return {
           id: String(user.id),
