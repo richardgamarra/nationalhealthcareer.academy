@@ -19,8 +19,19 @@ export async function GET() {
     const [existingRows] = await pool.query<RowDataPacket[]>('SELECT slug FROM courses');
     const existingSlugs = new Set(existingRows.map((r) => r.slug as string));
 
-    const preview = await Promise.all(courses.map(async (c) => {
-      const slug = c.shortname.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    // Fix I1: sequential loop instead of Promise.all to avoid overwhelming Moodle API
+    const preview: Array<{
+      moodleId: number;
+      title: string;
+      slug: string;
+      lessonCount: number;
+      questionCount: number;
+      alreadyImported: boolean;
+    }> = [];
+    for (let i = 0; i < courses.length; i++) {
+      const c = courses[i];
+      // Fix m1: empty slug fallback
+      const slug = (c.shortname.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')) || `course-${c.id}`;
       const lessons = await scanMoodleLessons(c.id);
       const quizLessons = lessons.filter((l) => l.modType === 'quiz');
       let questionCount = 0;
@@ -28,15 +39,15 @@ export async function GET() {
         const qs = await scanMoodleQuestions(ql.id);
         questionCount += qs.length;
       }
-      return {
+      preview.push({
         moodleId: c.id,
         title: c.fullname,
         slug,
         lessonCount: lessons.length,
         questionCount,
         alreadyImported: existingSlugs.has(slug),
-      };
-    }));
+      });
+    }
 
     return NextResponse.json({ courses: preview });
   } catch (err: any) {
