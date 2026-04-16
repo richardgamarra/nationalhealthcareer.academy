@@ -19,7 +19,7 @@ export interface Lesson {
   title: string;
   slug: string;
   content: string | null;
-  type: 'text' | 'document' | 'presentation' | 'quiz';
+  type: 'text' | 'document' | 'presentation' | 'quiz' | 'link';
   file_path: string | null;
   video_url: string | null;
   sort_order: number;

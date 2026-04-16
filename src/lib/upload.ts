@@ -3,25 +3,40 @@ import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 
 const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads');
-const ALLOWED_TYPES = [
+
+const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+const DOC_TYPES = [
   'application/pdf',
   'application/vnd.openxmlformats-officedocument.presentationml.presentation',
 ];
-const MAX_BYTES = 50 * 1024 * 1024; // 50 MB
+const ALLOWED_TYPES = [...DOC_TYPES, ...IMAGE_TYPES];
+
+const MAX_BYTES = 50 * 1024 * 1024; // 50 MB for docs
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024; // 10 MB for images
+
+function getExtension(file: File): string {
+  const name = file.name.toLowerCase();
+  if (name.endsWith('.pptx')) return '.pptx';
+  if (name.endsWith('.pdf')) return '.pdf';
+  if (name.endsWith('.png')) return '.png';
+  if (name.endsWith('.gif')) return '.gif';
+  if (name.endsWith('.webp')) return '.webp';
+  if (name.endsWith('.svg')) return '.svg';
+  // default for jpeg variants
+  return '.jpg';
+}
 
 export async function saveUploadedFile(file: File): Promise<string> {
   if (!ALLOWED_TYPES.includes(file.type)) {
-    throw new Error('Only PDF and PPTX files are allowed');
+    throw new Error('Only PDF, PPTX, and image files (JPEG, PNG, GIF, WebP, SVG) are allowed');
   }
-  // Note: file.type is set by the browser from the file extension — it is not a verified
-  // content check. A renamed malicious file could pass. Files are served statically to
-  // enrolled users only and are not executed server-side, so this risk is accepted for
-  // Phase 1. Consider adding magic-byte validation for Phase 2.
-  if (file.size > MAX_BYTES) {
-    throw new Error('File exceeds 50 MB limit');
+  const isImage = IMAGE_TYPES.includes(file.type);
+  const maxSize = isImage ? MAX_IMAGE_BYTES : MAX_BYTES;
+  if (file.size > maxSize) {
+    throw new Error(isImage ? 'Image exceeds 10 MB limit' : 'File exceeds 50 MB limit');
   }
   await mkdir(UPLOAD_DIR, { recursive: true });
-  const ext = file.name.toLowerCase().endsWith('.pptx') ? '.pptx' : '.pdf';
+  const ext = getExtension(file);
   const baseName = file.name.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9._-]/g, '_');
   const filename = `${Date.now()}-${baseName}${ext}`;
   const filepath = path.join(UPLOAD_DIR, filename);

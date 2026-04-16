@@ -74,5 +74,27 @@ export default function LessonViewer({ lesson, questions }: Props) {
     );
   }
 
+  if (lesson.type === 'link') {
+    const url = lesson.file_path;
+    if (!url) return <p className="p-6 text-gray-400 text-sm">No link set yet.</p>;
+    return (
+      <div className="flex flex-col h-full p-4 gap-3">
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-gray-600 truncate">{url}</span>
+          <a href={url} target="_blank" rel="noopener noreferrer"
+            className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 shrink-0">
+            Open in new tab ↗
+          </a>
+        </div>
+        <iframe
+          src={url}
+          className="flex-1 w-full border border-gray-200 rounded-lg min-h-[500px]"
+          title={lesson.title}
+          sandbox="allow-scripts allow-same-origin allow-forms"
+        />
+      </div>
+    );
+  }
+
   return null;
 }

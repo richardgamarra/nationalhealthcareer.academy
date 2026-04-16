@@ -10,7 +10,7 @@ interface Props {
   onSaved: () => void;
 }
 
-type Tab = 'text' | 'document' | 'presentation' | 'quiz';
+type Tab = 'text' | 'document' | 'presentation' | 'quiz' | 'link';
 
 export default function LessonEditor({ lesson: initial, initialQuestions, onSaved }: Props) {
   const [lesson, setLesson] = useState(initial);
@@ -66,6 +66,7 @@ export default function LessonEditor({ lesson: initial, initialQuestions, onSave
     { key: 'document', label: 'PDF', icon: '📎' },
     { key: 'presentation', label: 'Presentation', icon: '📊' },
     { key: 'quiz', label: 'Quiz', icon: '📋' },
+    { key: 'link', label: 'Link', icon: '🔗' },
   ];
 
   return (
@@ -128,6 +129,29 @@ export default function LessonEditor({ lesson: initial, initialQuestions, onSave
 
       {activeTab === 'quiz' && (
         <QuizBuilder questions={questions} onChange={setQuestions} />
+      )}
+
+      {activeTab === 'link' && (
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">External URL</label>
+            <input
+              type="url"
+              value={lesson.file_path || ''}
+              onChange={(e) => setLesson((l) => ({ ...l, file_path: e.target.value }))}
+              placeholder="https://example.com"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p className="text-xs text-gray-400 mt-1">This URL will be shown to students as an embedded page or link.</p>
+          </div>
+          {lesson.file_path && (
+            <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <span className="text-sm text-blue-700 flex-1 truncate">{lesson.file_path}</span>
+              <a href={lesson.file_path} target="_blank" rel="noopener noreferrer"
+                className="text-xs text-blue-600 hover:underline shrink-0">Open ↗</a>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
