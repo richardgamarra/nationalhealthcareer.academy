@@ -50,26 +50,51 @@ export default function LessonViewer({ lesson, questions }: Props) {
 
   if (lesson.type === 'quiz') {
     return (
-      <div className="p-6 space-y-6">
-        <h2 className="font-bold text-lg">{lesson.title}</h2>
-        {questions.length === 0 && <p className="text-gray-400 text-sm">No questions yet.</p>}
-        {questions.map((q, idx) => (
-          <div key={q.id} className="bg-white border border-gray-200 rounded-xl p-4">
-            <p className="font-medium text-gray-900 mb-3 text-sm">{idx + 1}. {q.question}</p>
-            {(q.type === 'multiple_choice' || q.type === 'true_false') && q.options?.map((opt, oi) => (
-              <label key={oi} className="flex items-center gap-3 py-1.5 cursor-pointer group">
-                <input type="radio" name={`q-${q.id}`} className="w-4 h-4" />
-                <span className="text-sm text-gray-700 group-hover:text-blue-600">{opt}</span>
-              </label>
+      <div className="bg-gray-50 min-h-full p-6 md:p-10">
+        <div className="max-w-3xl mx-auto">
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">{lesson.title}</h1>
+          {questions.length > 0 && (
+            <p className="text-sm text-gray-500 mb-8">{questions.length} question{questions.length !== 1 ? 's' : ''}</p>
+          )}
+          {questions.length === 0 && (
+            <p className="text-gray-400 text-base mt-8 text-center">No questions yet.</p>
+          )}
+          <div className="space-y-5">
+            {questions.map((q, idx) => (
+              <div key={q.id} className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                {/* Question header */}
+                <div className="px-6 py-5 border-b border-gray-100">
+                  <div className="flex items-start gap-4">
+                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 text-white text-sm font-bold flex items-center justify-center mt-0.5">
+                      {idx + 1}
+                    </span>
+                    <p className="text-base font-medium text-gray-900 leading-relaxed">{q.question}</p>
+                  </div>
+                </div>
+                {/* Options */}
+                <div className="px-6 py-4 space-y-2">
+                  {(q.type === 'multiple_choice' || q.type === 'true_false') && q.options?.map((opt, oi) => (
+                    <label key={oi}
+                      className="flex items-center gap-4 px-4 py-3 rounded-xl border border-gray-200 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors group">
+                      <input type="radio" name={`q-${q.id}`} className="w-4 h-4 accent-blue-600 flex-shrink-0" />
+                      <span className="text-base text-gray-800 group-hover:text-blue-700">{opt}</span>
+                    </label>
+                  ))}
+                  {q.type === 'short_answer' && (
+                    <textarea
+                      rows={4}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                      placeholder="Write your answer here…"
+                    />
+                  )}
+                </div>
+              </div>
             ))}
-            {q.type === 'short_answer' && (
-              <textarea rows={3} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Your answer…" />
-            )}
           </div>
-        ))}
-        {questions.length > 0 && (
-          <p className="text-sm text-gray-400 text-center italic mt-4">Quiz submission coming in a future update.</p>
-        )}
+          {questions.length > 0 && (
+            <p className="text-sm text-gray-400 text-center mt-8 italic">Quiz grading coming in a future update.</p>
+          )}
+        </div>
       </div>
     );
   }
