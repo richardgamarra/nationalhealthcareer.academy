@@ -234,3 +234,110 @@ Shown on the course detail page when a student is not enrolled. Not functional �
 | Zoom live class integration | Phase 3 |
 | Quiz auto-grading + student results | Phase 2 |
 | Course completion certificates | Phase 2 |
+| Instructor role + multi-instructor courses | Phase 4 |
+| Instructor dashboard (own courses only) | Phase 4 |
+| Community per course (posts + comments) | Phase 5 |
+| Instructor announcements + pinned posts | Phase 5 |
+| Public course marketplace | Phase 6 |
+| Instructor revenue split / payouts | Phase 6 |
+
+---
+
+## 14. Phase Roadmap
+
+### Phase 2 — Payments & Completion
+- Stripe checkout integration (one-time enrollment per course)
+- Quiz auto-grading + student results page
+- Course completion certificates (PDF generated server-side)
+- Student progress tracking (`progress_pct` updated as lessons completed)
+
+### Phase 3 — Self-Registration & Auth
+- Student self-registration with email + password
+- Email verification flow
+- Google OAuth login
+- Zoom live class integration (scheduled classes linked to courses)
+
+### Phase 4 — Instructor Role
+**Goal:** Allow trusted users to create and manage their own courses without admin access.
+
+**DB changes:**
+```sql
+-- Add instructor role to existing role ENUM
+ALTER TABLE students MODIFY COLUMN role ENUM('student','instructor','admin') DEFAULT 'student';
+
+-- Track course ownership
+ALTER TABLE courses ADD COLUMN instructor_id INT NULL REFERENCES students(id);
+```
+
+**Features:**
+- Admin promotes any student to `instructor` role
+- Instructors see an `/instructor` dashboard (own courses only)
+- Instructors can create courses, add/edit lessons, upload PDFs/PPTXs, build quizzes
+- Instructors cannot see other instructors' courses or the admin panel
+- Admin retains override access to all courses
+- Instructor bio page + public profile at `/instructors/[slug]`
+
+### Phase 5 — Community Per Course
+**Goal:** Each course gets a discussion board. Think Skool — community + courses in one place.
+
+**DB changes:**
+```sql
+CREATE TABLE posts (
+  id          INT AUTO_INCREMENT PRIMARY KEY,
+  course_id   INT NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+  student_id  INT NOT NULL REFERENCES students(id),
+  title       VARCHAR(255) NOT NULL,
+  body        TEXT NOT NULL,
+  is_pinned   BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE post_comments (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  post_id    INT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+  student_id INT NOT NULL REFERENCES students(id),
+  body       TEXT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE post_likes (
+  post_id    INT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+  student_id INT NOT NULL REFERENCES students(id),
+  PRIMARY KEY (post_id, student_id)
+);
+```
+
+**Features:**
+- "Community" tab on each course detail page (enrolled students only)
+- Students can post questions, share resources, start discussions
+- Instructors/admins can pin announcements at the top
+- Like/upvote posts
+- Email notification on reply (optional)
+- Admin moderation: delete any post or comment
+
+### Phase 6 — Marketplace
+**Goal:** Public course catalog anyone can browse. Instructors sell their own courses. Platform takes a cut.
+
+**DB changes:**
+```sql
+-- Revenue split config
+ALTER TABLE courses ADD COLUMN platform_fee_pct DECIMAL(5,2) NOT NULL DEFAULT 20.00;
+
+-- Instructor payout tracking
+CREATE TABLE payouts (
+  id             INT AUTO_INCREMENT PRIMARY KEY,
+  instructor_id  INT NOT NULL REFERENCES students(id),
+  amount         DECIMAL(10,2) NOT NULL,
+  status         ENUM('pending','paid') NOT NULL DEFAULT 'pending',
+  paid_at        DATETIME NULL,
+  created_at     DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+**Features:**
+- Public `/courses` catalog — visible without login, shows all published courses
+- Per-instructor public storefront at `/instructors/[slug]`
+- Stripe Connect for instructor payouts (platform keeps `platform_fee_pct`, instructor gets rest)
+- Course ratings + reviews from enrolled students
+- Search and filter by category, level, price, instructor
+- Admin revenue dashboard (total sales, instructor payouts, platform earnings)
