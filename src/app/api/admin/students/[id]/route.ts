@@ -14,6 +14,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
+  if (!body.password && body.is_active === undefined && !body.name && !body.email) {
+    return NextResponse.json({ error: 'No updatable fields provided' }, { status: 400 });
+  }
   if (body.password) {
     const hash = await bcrypt.hash(body.password, 12);
     await pool.query('UPDATE students SET password_hash = ? WHERE id = ?', [hash, id]);
