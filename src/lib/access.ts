@@ -6,26 +6,31 @@ import type { Course, Lesson, Enrollment } from '@/types';
  */
 export function isFreeLesson(
   lesson: Pick<Lesson, 'course_id' | 'sort_order'>,
-  courses: Pick<Course, 'id' | 'sort_order'>[]
+  courses: Pick<Course, 'id' | 'sort_order'>[],
+  allLessons: Pick<Lesson, 'course_id' | 'sort_order'>[]
 ): boolean {
   if (courses.length === 0) return false;
-  const minSortOrder = Math.min(...courses.map((c) => c.sort_order));
-  const firstCourse = courses.find((c) => c.sort_order === minSortOrder);
+  const minCourseSortOrder = Math.min(...courses.map((c) => c.sort_order));
+  const firstCourse = courses.find((c) => c.sort_order === minCourseSortOrder);
   if (!firstCourse || lesson.course_id !== firstCourse.id) return false;
-  return lesson.sort_order === 1;
+  const lessonsInFirstCourse = allLessons.filter((l) => l.course_id === firstCourse.id);
+  if (lessonsInFirstCourse.length === 0) return false;
+  const minLessonSortOrder = Math.min(...lessonsInFirstCourse.map((l) => l.sort_order));
+  return lesson.sort_order === minLessonSortOrder;
 }
 
 /**
  * Returns true if the user can view this lesson.
- * Admin always can. Free lesson always can. Otherwise must be enrolled.
+ * Admin and instructor always can. Free lesson always can. Otherwise must be enrolled.
  */
 export function canAccessLesson(
   lesson: Pick<Lesson, 'course_id' | 'sort_order'>,
   courses: Pick<Course, 'id' | 'sort_order'>[],
-  enrollments: Pick<Enrollment, 'course_id' | 'progress_pct'>[],
+  allLessons: Pick<Lesson, 'course_id' | 'sort_order'>[],
+  enrollments: Pick<Enrollment, 'course_id'>[],
   role: 'student' | 'instructor' | 'admin'
 ): boolean {
-  if (role === 'admin') return true;
-  if (isFreeLesson(lesson, courses)) return true;
+  if (role === 'admin' || role === 'instructor') return true;
+  if (isFreeLesson(lesson, courses, allLessons)) return true;
   return enrollments.some((e) => e.course_id === lesson.course_id);
 }
