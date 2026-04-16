@@ -35,7 +35,7 @@ export default function LessonViewer({ lesson, questions }: Props) {
   if (lesson.type === 'presentation') {
     const url = lesson.file_path;
     if (!url) return <p className="p-6 text-gray-400 text-sm">No presentation uploaded yet.</p>;
-    const baseUrl = process.env.NEXTAUTH_URL?.replace(/\/$/, '') ?? 'https://nationalhealthcareer.com';
+    const baseUrl = (process.env.AUTH_URL ?? process.env.NEXTAUTH_URL ?? 'https://nationalhealthcareer.com').replace(/\/$/, '');
     const absoluteUrl = `${baseUrl}${url}`;
     const viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(absoluteUrl)}`;
     return (

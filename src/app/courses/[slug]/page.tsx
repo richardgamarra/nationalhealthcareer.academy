@@ -62,7 +62,8 @@ export default async function CourseDetailPage({ params, searchParams }: { param
   let questions: QuizQuestion[] = [];
   if (activeLesson?.type === 'quiz') {
     const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM quiz_questions WHERE lesson_id = ? ORDER BY sort_order', [activeLesson.id]);
-    questions = rows as QuizQuestion[];
+    // options is stored as a JSON string in the DB (longtext column) — parse it here
+    questions = (rows as any[]).map((q) => ({ ...q, options: q.options ? JSON.parse(q.options) : null }));
   }
 
   return (

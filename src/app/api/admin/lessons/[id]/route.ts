@@ -12,7 +12,9 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
   const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM lessons WHERE id = ?', [id]);
   const lesson = rows[0];
   if (!lesson) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-  const [questions] = await pool.query<RowDataPacket[]>('SELECT * FROM quiz_questions WHERE lesson_id = ? ORDER BY sort_order', [id]);
+  const [qRows] = await pool.query<RowDataPacket[]>('SELECT * FROM quiz_questions WHERE lesson_id = ? ORDER BY sort_order', [id]);
+  // options is stored as a JSON string in the DB (longtext column) — parse before sending to client
+  const questions = (qRows as any[]).map((q) => ({ ...q, options: q.options ? JSON.parse(q.options) : null }));
   return NextResponse.json({ lesson, questions });
 }
 
