@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent,
 } from '@dnd-kit/core';
@@ -37,6 +37,11 @@ function SortableLesson({ lesson, isActive, onSelect }: { lesson: Lesson; isActi
 
 export default function LessonTree({ lessons, activeLessonId, onSelect, onReorder, onAddLesson, onAddSection }: Props) {
   const [items, setItems] = useState(lessons);
+
+  useEffect(() => {
+    setItems(lessons);
+  }, [lessons]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),

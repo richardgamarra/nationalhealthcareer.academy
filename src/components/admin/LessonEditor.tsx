@@ -53,6 +53,8 @@ export default function LessonEditor({ lesson: initial, initialQuestions, onSave
       if (res.ok) {
         const { url } = await res.json();
         setLesson((l) => ({ ...l, file_path: url }));
+      } else {
+        setMsg('Upload failed');
       }
     } finally {
       setUploading(false);
@@ -108,8 +110,8 @@ export default function LessonEditor({ lesson: initial, initialQuestions, onSave
               {activeTab === 'document' ? 'Upload PDF (max 50MB)' : 'Upload PPTX file (max 50MB)'}
             </p>
             <input type="file" accept={activeTab === 'document' ? '.pdf' : '.pptx'}
-              onChange={handleFileUpload} className="hidden" id="file-upload" />
-            <label htmlFor="file-upload"
+              onChange={handleFileUpload} className="hidden" id={`file-upload-${lesson.id}`} />
+            <label htmlFor={`file-upload-${lesson.id}`}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm cursor-pointer hover:bg-blue-700">
               {uploading ? 'Uploading…' : 'Choose File'}
             </label>
