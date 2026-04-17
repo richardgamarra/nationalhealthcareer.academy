@@ -2,64 +2,239 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
+import { useState } from "react";
 
-const links = [
-  { href: "/", label: "Home" },
+const navLinks = [
+  { href: "/courses", label: "Programs" },
   { href: "/courses", label: "Courses" },
-  { href: "/calendar", label: "Live Classes" },
-  { href: "/dashboard", label: "Dashboard" },
+  { href: "/#about", label: "About" },
+  { href: "/#contact", label: "Contact" },
 ];
+
+function ShieldLogo() {
+  return (
+    <svg
+      width="38"
+      height="38"
+      viewBox="0 0 44 44"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <path
+        d="M22 2L6 9v11c0 10 7 19 16 21 9-2 16-11 16-21V9L22 2z"
+        fill="#1e4d9b"
+        stroke="#60a5fa"
+        strokeWidth="1.5"
+      />
+      <rect x="18" y="12" width="8" height="20" rx="2" fill="white" />
+      <rect x="12" y="18" width="20" height="8" rx="2" fill="white" />
+    </svg>
+  );
+}
 
 export default function Navbar() {
   const path = usePathname();
   const { data: session } = useSession();
   const isAdmin = (session?.user as any)?.role === "admin";
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <nav className="bg-gray-900 text-white px-6 py-3 flex items-center justify-between">
-      <Link href="/" className="font-bold text-lg tracking-tight">
-        NHA <span className="text-blue-400">Academy</span>
-      </Link>
-      <div className="flex items-center gap-6 text-sm">
-        {links.map((l) => (
-          <Link
-            key={l.href}
-            href={l.href}
-            className={`hover:text-blue-400 transition-colors ${
-              path === l.href ? "text-blue-400 font-semibold" : "text-gray-300"
-            }`}
-          >
-            {l.label}
-          </Link>
-        ))}
+    <header style={{ background: "#0f2b5b", borderBottom: "2px solid #1d4ed8" }}>
+      {/* Main bar */}
+      <nav
+        className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between text-white"
+        style={{ height: "64px" }}
+      >
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-3 shrink-0">
+          <ShieldLogo />
+          <div className="leading-none">
+            <div className="text-white font-extrabold text-[14px] sm:text-[15px] tracking-tight leading-tight">
+              National Health Career
+            </div>
+            <div
+              className="font-medium text-[9px] sm:text-[10px] tracking-[2px] uppercase"
+              style={{ color: "#93c5fd" }}
+            >
+              Academy
+            </div>
+          </div>
+        </Link>
 
-        {isAdmin && (
-          <Link
-            href="/admin"
-            className={`hover:text-blue-400 transition-colors ${
-              path.startsWith("/admin") ? "text-blue-400 font-semibold" : "text-gray-300"
-            }`}
-          >
-            Admin
-          </Link>
-        )}
+        {/* Desktop nav links */}
+        <div className="hidden md:flex items-center gap-5 text-sm">
+          {navLinks.map((l) => (
+            <Link
+              key={l.label}
+              href={l.href}
+              className="transition-colors hover:text-blue-300"
+              style={{ color: "#bfdbfe" }}
+            >
+              {l.label}
+            </Link>
+          ))}
 
-        {session ? (
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className="transition-colors hover:text-blue-300"
+              style={{
+                color: path.startsWith("/admin") ? "#60a5fa" : "#bfdbfe",
+                fontWeight: path.startsWith("/admin") ? 600 : 400,
+              }}
+            >
+              Admin
+            </Link>
+          )}
+
           <button
-            onClick={() => signOut({ callbackUrl: "/" })}
-            className="text-gray-300 hover:text-red-400 transition-colors"
+            className="text-[11px] font-medium px-2 py-0.5 rounded border transition-colors hover:bg-blue-800"
+            style={{ color: "#93c5fd", borderColor: "#1d4ed8" }}
+            aria-label="Toggle language"
           >
-            Sign Out
+            EN / ES
           </button>
-        ) : (
+        </div>
+
+        {/* Right side */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {session ? (
+            <>
+              <Link
+                href="/dashboard"
+                className="hidden md:inline text-sm transition-colors hover:text-blue-300"
+                style={{ color: "#bfdbfe" }}
+              >
+                Dashboard
+              </Link>
+              <button
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="hidden md:inline text-sm transition-colors hover:text-red-400"
+                style={{ color: "#bfdbfe" }}
+              >
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <Link
+              href="/login"
+              className="hidden md:inline text-sm transition-colors hover:text-blue-300"
+              style={{ color: "#bfdbfe" }}
+            >
+              Sign In
+            </Link>
+          )}
+
           <Link
-            href="/login"
-            className="bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            href="/courses"
+            className="bg-blue-600 text-white text-xs sm:text-sm font-semibold px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
           >
-            Sign In
+            Enroll Now →
           </Link>
-        )}
-      </div>
-    </nav>
+
+          {/* Mobile hamburger */}
+          <button
+            className="md:hidden flex flex-col gap-1 p-2 rounded"
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-label="Toggle navigation menu"
+          >
+            <span
+              className="block w-5 h-0.5 transition-all"
+              style={{
+                background: "#bfdbfe",
+                transform: mobileOpen ? "rotate(45deg) translate(2px, 5px)" : "",
+              }}
+            />
+            <span
+              className="block w-5 h-0.5 transition-all"
+              style={{
+                background: "#bfdbfe",
+                opacity: mobileOpen ? 0 : 1,
+              }}
+            />
+            <span
+              className="block w-5 h-0.5 transition-all"
+              style={{
+                background: "#bfdbfe",
+                transform: mobileOpen ? "rotate(-45deg) translate(2px, -5px)" : "",
+              }}
+            />
+          </button>
+        </div>
+      </nav>
+
+      {/* Mobile dropdown */}
+      {mobileOpen && (
+        <div
+          className="md:hidden px-4 pb-4 flex flex-col gap-3 text-sm"
+          style={{ background: "#0c2351", borderTop: "1px solid #1d4ed8" }}
+        >
+          {navLinks.map((l) => (
+            <Link
+              key={l.label}
+              href={l.href}
+              className="transition-colors hover:text-blue-300 py-1"
+              style={{ color: "#bfdbfe" }}
+              onClick={() => setMobileOpen(false)}
+            >
+              {l.label}
+            </Link>
+          ))}
+
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className="transition-colors hover:text-blue-300 py-1"
+              style={{ color: "#bfdbfe" }}
+              onClick={() => setMobileOpen(false)}
+            >
+              Admin
+            </Link>
+          )}
+
+          <div
+            className="border-t pt-3 flex flex-col gap-2"
+            style={{ borderColor: "#1d4ed8" }}
+          >
+            <button
+              className="text-left text-[11px] font-medium w-fit px-2 py-0.5 rounded border"
+              style={{ color: "#93c5fd", borderColor: "#1d4ed8" }}
+            >
+              EN / ES
+            </button>
+
+            {session ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  className="py-1 transition-colors hover:text-blue-300"
+                  style={{ color: "#bfdbfe" }}
+                  onClick={() => setMobileOpen(false)}
+                >
+                  Dashboard
+                </Link>
+                <button
+                  onClick={() => signOut({ callbackUrl: "/" })}
+                  className="text-left py-1 transition-colors hover:text-red-400"
+                  style={{ color: "#bfdbfe" }}
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <Link
+                href="/login"
+                className="py-1 transition-colors hover:text-blue-300"
+                style={{ color: "#bfdbfe" }}
+                onClick={() => setMobileOpen(false)}
+              >
+                Sign In
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
+    </header>
   );
 }
