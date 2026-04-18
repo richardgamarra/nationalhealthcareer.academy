@@ -1265,15 +1265,16 @@ async function main() {
   for (const lesson of lessons) {
     let content = lesson.content || '';
 
+    let filePath = null;
     if (lesson.type === 'presentation') {
-      const filePath = makePptx(lesson.pptxKey);
-      content = JSON.stringify({ file: filePath, title: lesson.title });
+      filePath = makePptx(lesson.pptxKey);
+      content = '';
     }
 
     const [result] = await conn.execute(
-      `INSERT INTO lessons (course_id, title, type, content, sort_order, section_title, slug)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [COURSE_ID, lesson.title, lesson.type, content, lesson.sort, lesson.section, slug(lesson.title)]
+      `INSERT INTO lessons (course_id, title, type, content, file_path, sort_order, section_title, slug)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [COURSE_ID, lesson.title, lesson.type, content, filePath, lesson.sort, lesson.section, slug(lesson.title)]
     );
     console.log(`  ✓ [${lesson.sort}] ${lesson.type}: ${lesson.title} (id=${result.insertId})`);
   }
