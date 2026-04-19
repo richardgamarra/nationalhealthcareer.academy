@@ -7,11 +7,21 @@ import type { Course, Lesson, QuizQuestion, Enrollment } from '@/types';
 import { isFreeLesson, canAccessLesson } from '@/lib/access';
 import LessonSidebar from '@/components/course/LessonSidebar';
 import LessonViewer from '@/components/course/LessonViewer';
+import { cookies } from 'next/headers';
+import { parseLangCookie } from '@/lib/lang';
+import Link from 'next/link';
 
 async function getData(slug: string, userId: number | null) {
   const [courseRows] = await pool.query<RowDataPacket[]>('SELECT * FROM courses WHERE slug = ? LIMIT 1', [slug]);
   const course = (courseRows as Course[])[0];
   if (!course) return null;
+
+  // Fetch paired course (for language switcher)
+  let pairedCourse: Course | null = null;
+  if (course.paired_course_id) {
+    const [pRows] = await pool.query<RowDataPacket[]>('SELECT * FROM courses WHERE id = ? LIMIT 1', [course.paired_course_id]);
+    pairedCourse = (pRows as Course[])[0] ?? null;
+  }
 
   const [allCourses] = await pool.query<RowDataPacket[]>('SELECT id, sort_order FROM courses WHERE is_published = 1');
   const [lessons] = await pool.query<RowDataPacket[]>('SELECT * FROM lessons WHERE course_id = ? ORDER BY sort_order', [course.id]);
@@ -20,7 +30,7 @@ async function getData(slug: string, userId: number | null) {
     const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM enrollments WHERE student_id = ?', [userId]);
     enrollments = rows as Enrollment[];
   }
-  return { course, lessons: lessons as Lesson[], allCourses: allCourses as Course[], enrollments };
+  return { course, pairedCourse, lessons: lessons as Lesson[], allCourses: allCourses as Course[], enrollments };
 }
 
 // NOTE: In Next.js 15+, params and searchParams are Promises — check and await if needed
@@ -37,7 +47,7 @@ export default async function CourseDetailPage({ params, searchParams }: { param
   const data = await getData(slug, userId);
   if (!data) redirect('/courses');
 
-  const { course, lessons, allCourses, enrollments } = data;
+  const { course, pairedCourse, lessons, allCourses, enrollments } = data;
   const enrolled = role === 'admin' || role === 'instructor' || enrollments.some((e) => e.course_id === course.id);
 
   // Determine free lessons
@@ -66,12 +76,27 @@ export default async function CourseDetailPage({ params, searchParams }: { param
     questions = (rows as any[]).map((q) => ({ ...q, options: q.options ? JSON.parse(q.options) : null }));
   }
 
+  // Language label for the switcher button
+  const cookieStore = await cookies();
+  const lang = parseLangCookie(cookieStore.get('lang')?.value ?? null);
+  const switchLabel = lang === 'en' ? '🌐 Ver en Español' : '🌐 View in English';
+
   return (
     <div className="flex flex-col" style={{ height: 'calc(100vh - 56px)' }}>
       {/* Course header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
-        <p className="text-xs text-blue-600 font-semibold uppercase mb-0.5">{course.category}</p>
-        <h1 className="text-lg font-bold text-gray-900">{course.title}</h1>
+      <div className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0 flex items-center justify-between gap-4">
+        <div>
+          <p className="text-xs text-blue-600 font-semibold uppercase mb-0.5">{course.category}</p>
+          <h1 className="text-lg font-bold text-gray-900">{course.title}</h1>
+        </div>
+        {pairedCourse && (
+          <Link
+            href={`/courses/${pairedCourse.slug}`}
+            className="shrink-0 text-xs border border-blue-200 text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors font-medium"
+          >
+            {switchLabel}
+          </Link>
+        )}
       </div>
 
       {/* Split layout */}
@@ -94,14 +119,18 @@ export default async function CourseDetailPage({ params, searchParams }: { param
             <>
               {freeIds.has(activeLesson.id) && !enrolled && (
                 <div className="bg-blue-50 border-b border-blue-100 px-6 py-2 flex items-center justify-between">
-                  <span className="text-xs text-blue-700 font-medium">✨ Free preview lesson</span>
-                  <a href="enroll" className="text-xs text-blue-600 font-semibold hover:underline">Enroll for full access →</a>
+                  <span className="text-xs text-blue-700 font-medium">✨ {lang === 'es' ? 'Lección de vista previa gratuita' : 'Free preview lesson'}</span>
+                  <a href="enroll" className="text-xs text-blue-600 font-semibold hover:underline">
+                    {lang === 'es' ? 'Inscríbete para acceso completo →' : 'Enroll for full access →'}
+                  </a>
                 </div>
               )}
               <LessonViewer lesson={activeLesson} questions={questions} />
             </>
           ) : (
-            <div className="flex items-center justify-center h-full text-gray-300 text-sm">No lessons available</div>
+            <div className="flex items-center justify-center h-full text-gray-300 text-sm">
+              {lang === 'es' ? 'No hay lecciones disponibles' : 'No lessons available'}
+            </div>
           )}
         </div>
       </div>

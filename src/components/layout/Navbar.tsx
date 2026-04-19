@@ -3,13 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useState } from "react";
-
-const navLinks = [
-  { href: "/courses", label: "Programs" },
-  { href: "/courses", label: "Courses" },
-  { href: "/#about", label: "About" },
-  { href: "/#contact", label: "Contact" },
-];
+import { useLang } from "@/context/LangContext";
 
 function ShieldLogo() {
   return (
@@ -38,6 +32,14 @@ export default function Navbar() {
   const { data: session } = useSession();
   const isAdmin = (session?.user as any)?.role === "admin";
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { lang, t, toggle } = useLang();
+
+  const navLinks = [
+    { href: "/courses", label: t.nav.programs },
+    { href: "/courses", label: t.nav.courses },
+    { href: "/#about", label: t.nav.about },
+    { href: "/#contact", label: t.nav.contact },
+  ];
 
   return (
     <header style={{ background: "#0f2b5b", borderBottom: "2px solid #1d4ed8" }}>
@@ -84,16 +86,18 @@ export default function Navbar() {
                 fontWeight: path.startsWith("/admin") ? 600 : 400,
               }}
             >
-              Admin
+              {t.nav.admin}
             </Link>
           )}
 
+          {/* Language toggle */}
           <button
-            className="text-[11px] font-medium px-2 py-0.5 rounded border transition-colors hover:bg-blue-800"
+            onClick={toggle}
+            className="text-[11px] font-semibold px-2 py-0.5 rounded border transition-colors hover:bg-blue-800"
             style={{ color: "#93c5fd", borderColor: "#1d4ed8" }}
             aria-label="Toggle language"
           >
-            EN / ES
+            {lang === "en" ? "ES 🌐" : "EN 🌐"}
           </button>
         </div>
 
@@ -106,14 +110,14 @@ export default function Navbar() {
                 className="hidden md:inline text-sm transition-colors hover:text-blue-300"
                 style={{ color: "#bfdbfe" }}
               >
-                Dashboard
+                {t.nav.dashboard}
               </Link>
               <button
                 onClick={() => signOut({ callbackUrl: "/" })}
                 className="hidden md:inline text-sm transition-colors hover:text-red-400"
                 style={{ color: "#bfdbfe" }}
               >
-                Sign Out
+                {t.nav.signOut}
               </button>
             </>
           ) : (
@@ -122,7 +126,7 @@ export default function Navbar() {
               className="hidden md:inline text-sm transition-colors hover:text-blue-300"
               style={{ color: "#bfdbfe" }}
             >
-              Sign In
+              {t.nav.signIn}
             </Link>
           )}
 
@@ -130,7 +134,7 @@ export default function Navbar() {
             href="/courses"
             className="bg-blue-600 text-white text-xs sm:text-sm font-semibold px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
           >
-            Enroll Now →
+            {t.nav.enrollNow}
           </Link>
 
           {/* Mobile hamburger */}
@@ -189,7 +193,7 @@ export default function Navbar() {
               style={{ color: "#bfdbfe" }}
               onClick={() => setMobileOpen(false)}
             >
-              Admin
+              {t.nav.admin}
             </Link>
           )}
 
@@ -198,10 +202,11 @@ export default function Navbar() {
             style={{ borderColor: "#1d4ed8" }}
           >
             <button
-              className="text-left text-[11px] font-medium w-fit px-2 py-0.5 rounded border"
+              onClick={() => { toggle(); setMobileOpen(false); }}
+              className="text-left text-[11px] font-semibold w-fit px-2 py-0.5 rounded border"
               style={{ color: "#93c5fd", borderColor: "#1d4ed8" }}
             >
-              EN / ES
+              {lang === "en" ? "ES 🌐" : "EN 🌐"}
             </button>
 
             {session ? (
@@ -212,14 +217,14 @@ export default function Navbar() {
                   style={{ color: "#bfdbfe" }}
                   onClick={() => setMobileOpen(false)}
                 >
-                  Dashboard
+                  {t.nav.dashboard}
                 </Link>
                 <button
                   onClick={() => signOut({ callbackUrl: "/" })}
                   className="text-left py-1 transition-colors hover:text-red-400"
                   style={{ color: "#bfdbfe" }}
                 >
-                  Sign Out
+                  {t.nav.signOut}
                 </button>
               </>
             ) : (
@@ -229,7 +234,7 @@ export default function Navbar() {
                 style={{ color: "#bfdbfe" }}
                 onClick={() => setMobileOpen(false)}
               >
-                Sign In
+                {t.nav.signIn}
               </Link>
             )}
           </div>

@@ -1,0 +1,91 @@
+{
+  "nav": {
+    "programs": "Programs",
+    "courses": "Courses",
+    "about": "About",
+    "contact": "Contact",
+    "admin": "Admin",
+    "dashboard": "Dashboard",
+    "signOut": "Sign Out",
+    "signIn": "Sign In",
+    "enrollNow": "Enroll Now →"
+  },
+  "home": {
+    "heroTitle": "Launch Your Healthcare Career",
+    "heroSubtitle": "NHA-aligned certification prep for Medical Assistant, Phlebotomy, EKG Technician, Medical Coding, and more.",
+    "heroCtaPrimary": "Explore Programs →",
+    "heroCtaSecondary": "View All Courses",
+    "statsStudents": "Students Trained",
+    "statsCourses": "Courses Available",
+    "statsPassRate": "Certification Pass Rate",
+    "statsInstructors": "Expert Instructors",
+    "statsOnline": "Online & Flexible",
+    "programsTitle": "Healthcare Programs",
+    "programsSubtitle": "Choose your certification path",
+    "pathwayTitle": "Your Path to Certification",
+    "whyTitle": "Why National Health Career Academy",
+    "testimonialsTitle": "Student Success Stories",
+    "salariesTitle": "Healthcare Career Salaries",
+    "ctaTitle": "Ready to Start Your Healthcare Career?",
+    "ctaSubtitle": "Join thousands of students who launched their careers with us.",
+    "ctaButton": "Get Started Today →"
+  },
+  "courses": {
+    "pageTitle": "Course Catalog",
+    "pageSubtitle": "Health career courses — enroll to get started",
+    "free": "Free",
+    "enrolled": "Enrolled",
+    "enroll": "Enroll",
+    "startLearning": "Start Learning →",
+    "viewCourse": "View Course →",
+    "price": "One-time enrollment",
+    "lessons": "lessons",
+    "locked": "Locked"
+  },
+  "lesson": {
+    "next": "Next Lesson",
+    "prev": "Previous",
+    "complete": "Mark Complete",
+    "downloadPptx": "⬇ Download PPTX",
+    "downloadPdf": "⬇ Download PDF",
+    "noContent": "No content yet.",
+    "noPresentation": "No presentation uploaded yet.",
+    "noDocument": "No document uploaded yet."
+  },
+  "quiz": {
+    "submit": "Submit Answer",
+    "next": "Next Question",
+    "finish": "Finish Quiz",
+    "correct": "Correct!",
+    "incorrect": "Incorrect",
+    "score": "Your Score",
+    "retake": "Retake Quiz",
+    "noQuestions": "No questions yet."
+  },
+  "enroll": {
+    "title": "Enroll in Course",
+    "oneTime": "One-time enrollment — full course access",
+    "comingSoon": "Payment coming soon. To enroll now, please contact us directly.",
+    "contactButton": "Contact Us to Enroll",
+    "back": "← Back to course"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "email": "Email",
+    "password": "Password",
+    "signingIn": "Signing in…",
+    "noAccount": "Don't have an account?",
+    "contactAdmin": "Contact your administrator"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Your learning progress",
+    "noCourses": "You are not enrolled in any courses yet.",
+    "browseCourses": "Browse Courses"
+  },
+  "footer": {
+    "rights": "All rights reserved.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service"
+  }
+}

@@ -10,6 +10,8 @@ export interface Course {
   price: number;
   prerequisite_id: number | null;
   sort_order: number;
+  lang: 'en' | 'es';
+  paired_course_id: number | null;
   created_at: string;
 }
 

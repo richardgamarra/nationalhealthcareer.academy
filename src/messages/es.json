@@ -1,0 +1,91 @@
+{
+  "nav": {
+    "programs": "Programas",
+    "courses": "Cursos",
+    "about": "Nosotros",
+    "contact": "Contacto",
+    "admin": "Admin",
+    "dashboard": "Panel",
+    "signOut": "Cerrar Sesión",
+    "signIn": "Iniciar Sesión",
+    "enrollNow": "Inscríbete →"
+  },
+  "home": {
+    "heroTitle": "Lanza tu Carrera en Salud",
+    "heroSubtitle": "Preparación para certificaciones NHA en Asistente Médico, Flebotomía, Técnico de EKG, Codificación Médica y más.",
+    "heroCtaPrimary": "Ver Programas →",
+    "heroCtaSecondary": "Ver Todos los Cursos",
+    "statsStudents": "Estudiantes Capacitados",
+    "statsCourses": "Cursos Disponibles",
+    "statsPassRate": "Tasa de Aprobación",
+    "statsInstructors": "Instructores Expertos",
+    "statsOnline": "En Línea y Flexible",
+    "programsTitle": "Programas de Salud",
+    "programsSubtitle": "Elige tu camino de certificación",
+    "pathwayTitle": "Tu Camino a la Certificación",
+    "whyTitle": "Por Qué National Health Career Academy",
+    "testimonialsTitle": "Historias de Éxito",
+    "salariesTitle": "Salarios en Carreras de Salud",
+    "ctaTitle": "¿Listo para Comenzar tu Carrera en Salud?",
+    "ctaSubtitle": "Únete a miles de estudiantes que lanzaron sus carreras con nosotros.",
+    "ctaButton": "Empieza Hoy →"
+  },
+  "courses": {
+    "pageTitle": "Catálogo de Cursos",
+    "pageSubtitle": "Cursos de carreras en salud — inscríbete para comenzar",
+    "free": "Gratis",
+    "enrolled": "Inscrito",
+    "enroll": "Inscribirse",
+    "startLearning": "Comenzar →",
+    "viewCourse": "Ver Curso →",
+    "price": "Inscripción única",
+    "lessons": "lecciones",
+    "locked": "Bloqueado"
+  },
+  "lesson": {
+    "next": "Siguiente Lección",
+    "prev": "Anterior",
+    "complete": "Marcar Completado",
+    "downloadPptx": "⬇ Descargar PPTX",
+    "downloadPdf": "⬇ Descargar PDF",
+    "noContent": "Sin contenido aún.",
+    "noPresentation": "No se ha subido ninguna presentación.",
+    "noDocument": "No se ha subido ningún documento."
+  },
+  "quiz": {
+    "submit": "Enviar Respuesta",
+    "next": "Siguiente Pregunta",
+    "finish": "Finalizar Quiz",
+    "correct": "¡Correcto!",
+    "incorrect": "Incorrecto",
+    "score": "Tu Puntaje",
+    "retake": "Repetir Quiz",
+    "noQuestions": "Sin preguntas aún."
+  },
+  "enroll": {
+    "title": "Inscribirse al Curso",
+    "oneTime": "Inscripción única — acceso completo al curso",
+    "comingSoon": "Pago próximamente disponible. Para inscribirte ahora, contáctanos directamente.",
+    "contactButton": "Contáctanos para Inscribirte",
+    "back": "← Volver al curso"
+  },
+  "auth": {
+    "signIn": "Iniciar Sesión",
+    "email": "Correo Electrónico",
+    "password": "Contraseña",
+    "signingIn": "Iniciando sesión…",
+    "noAccount": "¿No tienes cuenta?",
+    "contactAdmin": "Contacta a tu administrador"
+  },
+  "dashboard": {
+    "title": "Panel de Control",
+    "subtitle": "Tu progreso de aprendizaje",
+    "noCourses": "Aún no estás inscrito en ningún curso.",
+    "browseCourses": "Ver Cursos"
+  },
+  "footer": {
+    "rights": "Todos los derechos reservados.",
+    "privacy": "Política de Privacidad",
+    "terms": "Términos de Servicio"
+  }
+}
